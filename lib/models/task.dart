@@ -3,6 +3,7 @@ import 'package:tomatodo/models/story_points.dart';
 enum Status {
   todo,
   inProgress,
+  finalize,
   completed
 }
 
