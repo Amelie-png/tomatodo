@@ -3,19 +3,19 @@ import 'package:tomatodo/models/story_points.dart';
 enum Status {
   todo,
   inProgress,
-  finalize,
+  finalizing,
   completed
 }
 
 class Task {
-  final String title, taskList;
+  final String title, taskCategory;
   final String? description;
   final DateTime? deadline;
   final StoryPoints storyPoints;
   final Status status;
 
   const Task({ required this.title, 
-    required this.taskList,
+    required this.taskCategory,
     required this.storyPoints,
     this.deadline, 
     this.description, 
@@ -32,7 +32,7 @@ class Task {
   }) {
     return Task(
       title: title ?? this.title,
-      taskList: taskList ?? this.taskList,
+      taskCategory: taskList ?? this.taskCategory,
       description: description ?? this.description,
       deadline: deadline ?? this.deadline,
       storyPoints: storyPoints ?? this.storyPoints,
