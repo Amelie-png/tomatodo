@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/task_list.dart';
+import 'package:tomatodo/screens/task_list.dart';
 
 void main() {
   runApp(const TomatodoApp());
@@ -24,7 +24,7 @@ class TomatodoApp extends StatelessWidget {
       title: 'Tomatodo',
       theme: ThemeData(
         // This is the theme of the application.
-        colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 76, 97, 175)),
+        colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 190, 235, 220)),
         useMaterial3: true
       ),
       home: const TaskList(),

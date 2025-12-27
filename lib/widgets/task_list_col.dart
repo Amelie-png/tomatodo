@@ -19,7 +19,7 @@ class TaskListColumn extends StatelessWidget {
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 50,
-                color: const Color.fromARGB(255, 114, 157, 255),
+                color: const Color.fromARGB(255, 190, 235, 220),
                 child: Center(child: Text(tasks[index].title)),
               );
             },

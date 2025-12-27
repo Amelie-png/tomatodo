@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tomatodo/models/story_points.dart';
+import 'package:tomatodo/screens/create_task.dart';
+import '../models/story_points.dart';
 import '../models/task.dart';
 import '../widgets/task_list_col.dart';
 
@@ -46,6 +47,10 @@ class _TaskListState extends State<TaskList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text('Task List'),
+      ),
       body: Row(
         children: [
           Expanded(
@@ -62,6 +67,20 @@ class _TaskListState extends State<TaskList> {
           ),
         ],
       ),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        child: Container(height: 50.0),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (context) => const CreateTask()),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
