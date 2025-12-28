@@ -22,26 +22,13 @@ class _TaskListState extends State<TaskList> {
     super.initState();
 
     // Create tasks ONCE here
-    todoTasks = [
-      Task(title: 'Design UI', taskCategory: 'CS', storyPoints: StoryPoints()),
-      Task(title: 'Fix lamp', taskCategory: 'Home', storyPoints: StoryPoints()),
-    ];
+    todoTasks = [];
 
-    inProgressTasks = [
-      Task(
-        title: 'Finish A2',
-        taskCategory: 'Math',
-        storyPoints: StoryPoints(),
-      ),
-    ];
+    inProgressTasks = [];
 
-    finalizingTasks = [
-      Task(title: '倒垃圾', taskCategory: 'Home', storyPoints: StoryPoints()),
-    ];
+    finalizingTasks = [];
 
-    completedTasks = [
-      Task(title: '吃饭', taskCategory: 'Home', storyPoints: StoryPoints()),
-    ];
+    completedTasks = [];
   }
 
   @override
@@ -73,14 +60,38 @@ class _TaskListState extends State<TaskList> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(builder: (context) => const CreateTask()),
-          );
+          _navigateToCreateTask(context);
         },
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
+  }
+
+  Future<void> _navigateToCreateTask(BuildContext context) async {
+    // Navigator.push returns a Future that completes after calling
+    // Navigator.pop on the Create Task Screen.
+    final result = await Navigator.push(
+      context,
+      // Create the CreateTask in the next step.
+      MaterialPageRoute<Task>(builder: (context) => const CreateTask()),
+    );
+
+    if (!context.mounted) return;
+
+    if (result != null) {
+      setState(() {
+        switch (result.status) {
+          case Status.todo:
+            todoTasks.add(result);
+          case Status.inProgress:
+            inProgressTasks.add(result);
+          case Status.finalizing:
+            finalizingTasks.add(result);
+          case Status.completed:
+            completedTasks.add(result);
+        }
+      });
+    }
   }
 }

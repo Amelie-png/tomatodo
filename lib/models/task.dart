@@ -7,15 +7,30 @@ enum Status {
   completed
 }
 
+extension StatusLabel on Status {
+  String get label {
+    switch (this) {
+      case Status.todo:
+        return 'To Do';
+      case Status.inProgress:
+        return 'In Progress';
+      case Status.finalizing:
+        return 'Finalizing';
+      case Status.completed:
+        return 'Completed';
+    }
+  }
+}
+
 class Task {
-  final String title, taskCategory;
-  final String? description;
+  final String title;
+  final String? description, taskCategory;
   final DateTime? deadline;
   final StoryPoints storyPoints;
   final Status status;
 
   const Task({ required this.title, 
-    required this.taskCategory,
+    this.taskCategory,
     required this.storyPoints,
     this.deadline, 
     this.description, 
@@ -24,7 +39,7 @@ class Task {
 
   Task copyWith({
     String? title,
-    String? taskList,
+    String? taskCategory,
     String? description,
     DateTime? deadline,
     StoryPoints? storyPoints,
@@ -32,7 +47,7 @@ class Task {
   }) {
     return Task(
       title: title ?? this.title,
-      taskCategory: taskList ?? this.taskCategory,
+      taskCategory: taskCategory ?? this.taskCategory,
       description: description ?? this.description,
       deadline: deadline ?? this.deadline,
       storyPoints: storyPoints ?? this.storyPoints,

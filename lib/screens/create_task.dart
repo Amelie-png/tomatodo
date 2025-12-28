@@ -13,26 +13,30 @@ class CreateTask extends StatefulWidget {
   State<CreateTask> createState() => _CreateTaskState();
 }
 
-const List<String> list = <String>[
-  'Todo',
-  'In Progress',
-  'Finalized',
-  'Completed',
-];
-typedef MenuEntry = DropdownMenuEntry<String>;
+typedef MenuEntry = DropdownMenuEntry<Status>;
 
 class _CreateTaskState extends State<CreateTask> {
-  static final List<MenuEntry> dropdownEntries =
-      UnmodifiableListView<MenuEntry>(
-        list.map<MenuEntry>(
-          (String name) => MenuEntry(value: name, label: name),
-        ),
-      );
-  String dropdownValue = list.first;
+  //subject
+  final subjectController = TextEditingController();
 
+  //story points
   double _currentTimePoints = 3;
   double _currentComplexityPoints = 3;
   double _currentUrgencyPoints = 3;
+
+  //status
+  static final List<MenuEntry> dropdownEntries = Status.values
+      .map((status) => MenuEntry(value: status, label: status.label))
+      .toList();
+
+  Status _dropdownValue = Status.todo;
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    subjectController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +49,8 @@ class _CreateTaskState extends State<CreateTask> {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: 16,
         children: [
-          const TextField(
+          TextField(
+            controller: subjectController,
             decoration: InputDecoration(
               labelText: 'Subject',
               hintText: 'Enter task subject',
@@ -53,12 +58,12 @@ class _CreateTaskState extends State<CreateTask> {
             ),
           ),
           const Text('Status'),
-          DropdownMenu<String>(
-            initialSelection: list.first,
-            onSelected: (String? value) {
+          DropdownMenu<Status>(
+            initialSelection: _dropdownValue,
+            onSelected: (Status? value) {
               // This is called when the user selects an item.
               setState(() {
-                dropdownValue = value!;
+                _dropdownValue = value!;
               });
             },
             dropdownMenuEntries: dropdownEntries,
@@ -98,7 +103,16 @@ class _CreateTaskState extends State<CreateTask> {
                   child: const Text('Save'),
                   onPressed: () {
                     // Navigate to task list with task
-                    Navigator.pop(context);
+                    Task result = Task(
+                      title: subjectController.text,
+                      storyPoints: StoryPoints(
+                        timePoints: _currentTimePoints.round(),
+                        complexityPoints: _currentComplexityPoints.round(),
+                        urgencyPoints: _currentUrgencyPoints.round(),
+                      ),
+                      status: _dropdownValue,
+                    );
+                    Navigator.pop(context, result);
                   },
                 ),
               ),
