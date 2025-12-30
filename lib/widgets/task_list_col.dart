@@ -1,33 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:tomatodo/widgets/task_tile.dart';
 import '../models/task.dart';
 
-class TaskListColumn extends StatelessWidget {
-  final String title;
+class TaskListColumn extends StatefulWidget {
+  final Status status;
   final List<Task> tasks;
+  final void Function(Task task, Status newStatus) onTaskDropped;
 
-  const TaskListColumn({super.key, required this.title, required this.tasks});
+  const TaskListColumn({
+    super.key,
+    required this.status,
+    required this.tasks,
+    required this.onTaskDropped,
+  });
+
+  @override
+  State<TaskListColumn> createState() => _TaskListColumnState();
+}
+
+class _TaskListColumnState extends State<TaskListColumn> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(title),
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(8),
-            itemCount: tasks.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Container(
-                height: 50,
-                color: const Color.fromARGB(255, 190, 235, 220),
-                child: Center(child: Text(tasks[index].title)),
-              );
-            },
-            separatorBuilder: (BuildContext context, int index) =>
-                const Divider(),
+    return DragTarget<Task>(
+      onWillAcceptWithDetails: (_) {
+        setState(() => _isHovered = true);
+        return true;
+      },
+      onLeave: (_) {
+        setState(() => _isHovered = false);
+      },
+      onAcceptWithDetails: (detail) {
+        setState(() => _isHovered = false);
+        widget.onTaskDropped(detail.data, widget.status);
+      },
+      builder: (context, candidateData, rejectedData) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? Colors.blue.withValues(alpha: 0.1)
+                : Colors.transparent,
           ),
-        ),
-      ],
+          child: Column(
+            children: [
+              Text(widget.status.label),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: widget.tasks.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return TaskTile(task: widget.tasks[index]);
+                  },
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const Divider(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

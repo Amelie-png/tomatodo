@@ -8,9 +8,26 @@ class TaskTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(task.title),
-      trailing: Icon(Icons.more_vert),
+    return Draggable<Task>(
+      data: task,
+      feedback: Material(child: Opacity(opacity: 0.9, child: _tileContent())),
+      childWhenDragging: const SizedBox.shrink(),
+      child: _tileContent(),
+    );
+  }
+
+  Widget _tileContent() {
+    return Container(
+      height: 50,
+      width: 200,
+      color: const Color.fromARGB(255, 190, 235, 220),
+      child: ListTile(
+        title: Text(task.title), // Main content
+        trailing: Icon(Icons.more_vert), // The trailing icon
+        onTap: () {
+          // Handle the tap event for the entire tile
+        },
+      ),
     );
   }
 }

@@ -1,7 +1,4 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
-import 'package:tomatodo/screens/task_list.dart';
 import 'package:tomatodo/widgets/task_points_slider.dart';
 import '../models/story_points.dart';
 import '../models/task.dart';
@@ -18,6 +15,7 @@ typedef MenuEntry = DropdownMenuEntry<Status>;
 class _CreateTaskState extends State<CreateTask> {
   //subject
   final subjectController = TextEditingController();
+  bool get _isValid => subjectController.text.trim().isNotEmpty;
 
   //story points
   double _currentTimePoints = 3;
@@ -28,8 +26,22 @@ class _CreateTaskState extends State<CreateTask> {
   static final List<MenuEntry> dropdownEntries = Status.values
       .map((status) => MenuEntry(value: status, label: status.label))
       .toList();
-
   Status _dropdownValue = Status.todo;
+
+  //save
+  void _saveTask() {
+    // Navigate to task list with task
+    Task result = Task(
+      title: subjectController.text,
+      storyPoints: StoryPoints(
+        timePoints: _currentTimePoints.round(),
+        complexityPoints: _currentComplexityPoints.round(),
+        urgencyPoints: _currentUrgencyPoints.round(),
+      ),
+      status: _dropdownValue,
+    );
+    Navigator.pop(context, result);
+  }
 
   @override
   void dispose() {
@@ -51,6 +63,7 @@ class _CreateTaskState extends State<CreateTask> {
         children: [
           TextField(
             controller: subjectController,
+            onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               labelText: 'Subject',
               hintText: 'Enter task subject',
@@ -100,20 +113,8 @@ class _CreateTaskState extends State<CreateTask> {
             children: [
               Expanded(
                 child: ElevatedButton(
+                  onPressed: _isValid ? _saveTask : null,
                   child: const Text('Save'),
-                  onPressed: () {
-                    // Navigate to task list with task
-                    Task result = Task(
-                      title: subjectController.text,
-                      storyPoints: StoryPoints(
-                        timePoints: _currentTimePoints.round(),
-                        complexityPoints: _currentComplexityPoints.round(),
-                        urgencyPoints: _currentUrgencyPoints.round(),
-                      ),
-                      status: _dropdownValue,
-                    );
-                    Navigator.pop(context, result);
-                  },
                 ),
               ),
               Expanded(
