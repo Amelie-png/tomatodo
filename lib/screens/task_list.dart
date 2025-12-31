@@ -11,18 +11,36 @@ class TaskList extends StatefulWidget {
 }
 
 class _TaskListState extends State<TaskList> {
-  final Map<Status, List<Task>> columns = {
-    Status.todo: [],
-    Status.inProgress: [],
-    Status.finalizing: [],
-    Status.completed: [],
-  };
+  final List<Task> _tasks = [];
 
+  //Draggable
   void _moveTask(Task task, Status newStatus) {
     setState(() {
-      columns.forEach((_, list) => list.remove(task));
-      columns[newStatus]!.add(task.copyWith(status: newStatus));
+      final index = _tasks.indexWhere((t) => t.id == task.id);
+      if (index == -1) return;
+      _tasks[index] = task.copyWith(status: newStatus);
     });
+  }
+
+  //From create task screen
+  void _saveTask(Task task) {
+    setState(() {
+      final index = _tasks.indexWhere((t) => t.id == task.id);
+      if (index != -1) {
+        _tasks[index] = task;
+      } else {
+        _tasks.add(task);
+      }
+    });
+  }
+  void _editTask(Task task) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            CreateTask(mode: TaskMode.edit, task: task, onSave: _saveTask),
+      ),
+    );
   }
 
   @override
@@ -37,8 +55,9 @@ class _TaskListState extends State<TaskList> {
           return Expanded(
             child: TaskListColumn(
               status: status,
-              tasks: columns[status]!,
+              tasks: _tasks.where((t) => t.status == status).toList(),
               onTaskDropped: _moveTask,
+              onEdit: _editTask,
             ),
           );
         }).toList(),
@@ -49,29 +68,17 @@ class _TaskListState extends State<TaskList> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _navigateToCreateTask(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  CreateTask(mode: TaskMode.create, onSave: _saveTask),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-
-  Future<void> _navigateToCreateTask(BuildContext context) async {
-    // Navigator.push returns a Future that completes after calling
-    // Navigator.pop on the CreateTask Screen.
-    final result = await Navigator.push(
-      context,
-      // Create the CreateTask in the next step.
-      MaterialPageRoute<Task>(builder: (context) => const CreateTask()),
-    );
-
-    if (!context.mounted) return;
-
-    if (result != null) {
-      setState(() {
-        columns[result.status]!.add(result);
-      });
-    }
   }
 }

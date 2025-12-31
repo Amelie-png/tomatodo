@@ -3,8 +3,9 @@ import '../models/task.dart';
 
 class TaskTile extends StatelessWidget {
   final Task task;
+  final VoidCallback? onEdit;
 
-  const TaskTile({super.key, required this.task});
+  const TaskTile({super.key, required this.task, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +24,10 @@ class TaskTile extends StatelessWidget {
       color: const Color.fromARGB(255, 190, 235, 220),
       child: ListTile(
         title: Text(task.title), // Main content
-        trailing: Icon(Icons.more_vert), // The trailing icon
-        onTap: () {
-          // Handle the tap event for the entire tile
-        },
+        trailing: IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: onEdit,
+        ),
       ),
     );
   }

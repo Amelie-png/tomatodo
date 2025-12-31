@@ -1,11 +1,6 @@
 import 'package:tomatodo/models/story_points.dart';
 
-enum Status {
-  todo,
-  inProgress,
-  finalizing,
-  completed
-}
+enum Status { todo, inProgress, finalizing, completed }
 
 extension StatusLabel on Status {
   String get label {
@@ -23,19 +18,23 @@ extension StatusLabel on Status {
 }
 
 class Task {
-  final String title;
+  final String id, title;
   final String? description, taskCategory;
   final DateTime? deadline;
+  final DateTime createdAt;
   final StoryPoints storyPoints;
   final Status status;
 
-  const Task({ required this.title, 
+  const Task({
+    required this.id,
+    required this.title,
     this.taskCategory,
     required this.storyPoints,
-    this.deadline, 
-    this.description, 
-    this.status = Status.todo}
-  );
+    this.deadline,
+    required this.createdAt,
+    this.description,
+    this.status = Status.todo,
+  });
 
   Task copyWith({
     String? title,
@@ -46,10 +45,12 @@ class Task {
     Status? status,
   }) {
     return Task(
+      id: id,
       title: title ?? this.title,
       taskCategory: taskCategory ?? this.taskCategory,
       description: description ?? this.description,
       deadline: deadline ?? this.deadline,
+      createdAt: createdAt,
       storyPoints: storyPoints ?? this.storyPoints,
       status: status ?? this.status,
     );

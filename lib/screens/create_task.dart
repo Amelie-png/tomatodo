@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:tomatodo/widgets/task_points_slider.dart';
+import 'package:uuid/uuid.dart';
 import '../models/story_points.dart';
 import '../models/task.dart';
 
 class CreateTask extends StatefulWidget {
-  const CreateTask({super.key});
+  final TaskMode mode;
+  final Task? task;
+  final ValueChanged<Task> onSave;
+  const CreateTask({
+    super.key,
+    required this.mode,
+    this.task,
+    required this.onSave,
+  });
 
   @override
   State<CreateTask> createState() => _CreateTaskState();
@@ -12,10 +21,20 @@ class CreateTask extends StatefulWidget {
 
 typedef MenuEntry = DropdownMenuEntry<Status>;
 
+enum TaskMode { create, edit }
+
 class _CreateTaskState extends State<CreateTask> {
+  late Task _draftTask;
   //subject
-  final subjectController = TextEditingController();
-  bool get _isValid => subjectController.text.trim().isNotEmpty;
+  late TextEditingController _titleController;
+  bool get _isValid => _titleController.text.trim().isNotEmpty;
+
+  //description
+  late TextEditingController _descriptionController;
+
+  //category
+
+  //deadline
 
   //story points
   double _currentTimePoints = 3;
@@ -31,8 +50,9 @@ class _CreateTaskState extends State<CreateTask> {
   //save
   void _saveTask() {
     // Navigate to task list with task
-    Task result = Task(
-      title: subjectController.text,
+    final result = _draftTask.copyWith(
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
       storyPoints: StoryPoints(
         timePoints: _currentTimePoints.round(),
         complexityPoints: _currentComplexityPoints.round(),
@@ -40,35 +60,73 @@ class _CreateTaskState extends State<CreateTask> {
       ),
       status: _dropdownValue,
     );
-    Navigator.pop(context, result);
+
+    widget.onSave(result);
+    Navigator.pop(context);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.mode == TaskMode.edit && widget.task != null) {
+      _draftTask = widget.task!.copyWith();
+    } else {
+      _draftTask = Task(
+        id: const Uuid().v4(),
+        title: '',
+        storyPoints: StoryPoints(),
+        createdAt: DateTime.now(),
+      );
+    }
+
+    _titleController = TextEditingController(text: _draftTask.title);
+    _descriptionController = TextEditingController(
+      text: _draftTask.description,
+    );
+    _dropdownValue = _draftTask.status;
+    _currentTimePoints = _draftTask.storyPoints.timePoints.toDouble();
+    _currentComplexityPoints = _draftTask.storyPoints.complexityPoints.toDouble();
+    _currentUrgencyPoints = _draftTask.storyPoints.urgencyPoints.toDouble();
   }
 
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    subjectController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.mode == TaskMode.edit;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('Create task'),
+        title: Text(isEdit ? 'Edit Task' : 'Create Task'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: 16,
         children: [
           TextField(
-            controller: subjectController,
+            controller: _titleController,
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
-              labelText: 'Subject',
-              hintText: 'Enter task subject',
+              labelText: 'Title',
+              hintText: 'Enter task title',
               border: OutlineInputBorder(),
             ),
+          ),
+          TextField(
+            controller: _descriptionController,
+            decoration: InputDecoration(
+              labelText: 'Description',
+              hintText: 'Describe task details',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 4,
           ),
           const Text('Status'),
           DropdownMenu<Status>(
@@ -114,7 +172,7 @@ class _CreateTaskState extends State<CreateTask> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: _isValid ? _saveTask : null,
-                  child: const Text('Save'),
+                  child: Text(isEdit ? 'Save' : 'Create'),
                 ),
               ),
               Expanded(
