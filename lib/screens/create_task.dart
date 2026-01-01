@@ -45,7 +45,7 @@ class _CreateTaskState extends State<CreateTask> {
   Future<void> _addCategory() async {
     final TaskCategory? newCategory = await showDialog<TaskCategory>(
       context: context,
-      builder: (_) => AddCategoryPopup(existingCategories: _categories,),
+      builder: (_) => AddCategoryPopup(existingCategories: _categories),
     );
 
     if (newCategory != null) {
@@ -55,6 +55,25 @@ class _CreateTaskState extends State<CreateTask> {
   }
 
   //deadline
+  DateTime? _selectedDate;
+  DateTime farFuture([int years = 30]) {
+    final now = DateTime.now();
+    return DateTime(now.year + years, now.month, now.day);
+  }
+
+  Future<void> _selectDate() async {
+    final now = DateTime.now();
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: now,
+      lastDate: farFuture(),
+    );
+
+    setState(() {
+      _selectedDate = pickedDate;
+    });
+  }
 
   //story points
   double _currentTimePoints = 3;
@@ -143,109 +162,120 @@ class _CreateTaskState extends State<CreateTask> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(isEdit ? 'Edit Task' : 'Create Task'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 16,
-        children: [
-          TextField(
-            controller: _titleController,
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              labelText: 'Title',
-              hintText: 'Enter task title',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          TextField(
-            controller: _descriptionController,
-            decoration: InputDecoration(
-              labelText: 'Description',
-              hintText: 'Describe task details',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 4,
-          ),
-          const Text('Status'),
-          DropdownMenu<Status>(
-            initialSelection: _dropdownValue,
-            onSelected: (Status? value) {
-              // This is called when the user selects an item.
-              setState(() {
-                _dropdownValue = value!;
-              });
-            },
-            dropdownMenuEntries: dropdownEntries,
-          ),
-          Row(
-            children: [
-              Expanded(child: const Text('Task Category (optional)')),
-              IconButton(onPressed: _addCategory, icon: Icon(Icons.add)),
-            ],
-          ),
-          Wrap(
-            spacing: 5.0,
-            children: List<Widget>.generate(visibleCategories.length, (
-              int index,
-            ) {
-              return ChoiceChip(
-                label: Text(visibleCategories[index].category),
-                selected: _selectedIndex == index,
-                onSelected: (bool selected) {
-                  setState(() {
-                    _selectedIndex = selected ? index : null;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-          const Text('Story Points'),
-          TaskPointsSlider(
-            title: 'Time needed',
-            currentValue: _currentTimePoints,
-            onChanged: (double value) {
-              setState(() {
-                _currentTimePoints = value;
-              });
-            },
-          ),
-          TaskPointsSlider(
-            title: 'Task complexity',
-            currentValue: _currentComplexityPoints,
-            onChanged: (double value) {
-              setState(() {
-                _currentComplexityPoints = value;
-              });
-            },
-          ),
-          TaskPointsSlider(
-            title: 'Task urgency',
-            currentValue: _currentUrgencyPoints,
-            onChanged: (double value) {
-              setState(() {
-                _currentUrgencyPoints = value;
-              });
-            },
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _isValid ? _saveTask : null,
-                  child: Text(isEdit ? 'Save' : 'Create'),
-                ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
+          children: [
+            TextField(
+              controller: _titleController,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Title',
+                hintText: 'Enter task title',
+                border: OutlineInputBorder(),
               ),
-              Expanded(
-                child: ElevatedButton(
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    // Navigate to task list without task
-                    Navigator.pop(context);
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: 'Description',
+                hintText: 'Describe task details',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 4,
+            ),
+            const Text('Status'),
+            DropdownMenu<Status>(
+              initialSelection: _dropdownValue,
+              onSelected: (Status? value) {
+                // This is called when the user selects an item.
+                setState(() {
+                  _dropdownValue = value!;
+                });
+              },
+              dropdownMenuEntries: dropdownEntries,
+            ),
+            Row(
+              children: [
+                Expanded(child: const Text('Task Category (optional)')),
+                IconButton(onPressed: _addCategory, icon: Icon(Icons.add)),
+              ],
+            ),
+            Wrap(
+              spacing: 5.0,
+              children: List<Widget>.generate(visibleCategories.length, (
+                int index,
+              ) {
+                return ChoiceChip(
+                  label: Text(visibleCategories[index].category),
+                  selected: _selectedIndex == index,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _selectedIndex = selected ? index : null;
+                    });
                   },
-                ),
+                );
+              }).toList(),
+            ),
+            Text('Task deadline'),
+            OutlinedButton(
+              onPressed: _selectDate,
+              child: Text(
+                _selectedDate != null
+                    ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
+                    : 'No date selected',
               ),
-            ],
-          ),
-        ],
+            ),
+            const Text('Story Points'),
+            TaskPointsSlider(
+              title: 'Time needed',
+              currentValue: _currentTimePoints,
+              onChanged: (double value) {
+                setState(() {
+                  _currentTimePoints = value;
+                });
+              },
+            ),
+            TaskPointsSlider(
+              title: 'Task complexity',
+              currentValue: _currentComplexityPoints,
+              onChanged: (double value) {
+                setState(() {
+                  _currentComplexityPoints = value;
+                });
+              },
+            ),
+            TaskPointsSlider(
+              title: 'Task urgency',
+              currentValue: _currentUrgencyPoints,
+              onChanged: (double value) {
+                setState(() {
+                  _currentUrgencyPoints = value;
+                });
+              },
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isValid ? _saveTask : null,
+                    child: Text(isEdit ? 'Save' : 'Create'),
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton(
+                    child: const Text('Cancel'),
+                    onPressed: () {
+                      // Navigate to task list without task
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
