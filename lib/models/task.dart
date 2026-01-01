@@ -1,0 +1,60 @@
+import 'package:tomatodo/models/story_points.dart';
+import 'package:tomatodo/models/task_category.dart';
+
+enum Status { todo, inProgress, finalizing, completed }
+
+extension StatusLabel on Status {
+  String get label {
+    switch (this) {
+      case Status.todo:
+        return 'To Do';
+      case Status.inProgress:
+        return 'In Progress';
+      case Status.finalizing:
+        return 'Finalizing';
+      case Status.completed:
+        return 'Completed';
+    }
+  }
+}
+
+class Task {
+  final String id, title;
+  final String? description;
+  final TaskCategory taskCategory;
+  final DateTime? deadline;
+  final DateTime createdAt;
+  final StoryPoints storyPoints;
+  final Status status;
+
+  const Task({
+    required this.id,
+    required this.title,
+    required this.taskCategory,
+    required this.storyPoints,
+    this.deadline,
+    required this.createdAt,
+    this.description,
+    this.status = Status.todo,
+  });
+
+  Task copyWith({
+    String? title,
+    TaskCategory? taskCategory,
+    String? description,
+    DateTime? deadline,
+    StoryPoints? storyPoints,
+    Status? status,
+  }) {
+    return Task(
+      id: id,
+      title: title ?? this.title,
+      taskCategory: taskCategory ?? this.taskCategory,
+      description: description ?? this.description,
+      deadline: deadline ?? this.deadline,
+      createdAt: createdAt,
+      storyPoints: storyPoints ?? this.storyPoints,
+      status: status ?? this.status,
+    );
+  }
+}
