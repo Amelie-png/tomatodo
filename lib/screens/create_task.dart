@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:tomatodo/models/task_category.dart';
+import 'package:tomatodo/widgets/add_category_popup.dart';
 import 'package:tomatodo/widgets/task_points_slider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/story_points.dart';
@@ -41,108 +41,17 @@ class _CreateTaskState extends State<CreateTask> {
 
   //category
   late List<TaskCategory> _categories;
-  final _newCategoryController = TextEditingController();
   int? _selectedIndex;
-  Color _selectedColor = const Color.fromARGB(255, 190, 235, 220);
   Future<void> _addCategory() async {
     final TaskCategory? newCategory = await showDialog<TaskCategory>(
       context: context,
-      builder: (context) {
-        Color tempColor = _selectedColor;
-
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Add New Category'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _newCategoryController,
-                    decoration: const InputDecoration(
-                      labelText: 'Category Title',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          await showDialog(
-                            context: context,
-                            builder: (_) => StatefulBuilder(
-                              builder: (context, setPickerState) {
-                                return AlertDialog(
-                                  content: ColorPicker(
-                                    pickerColor: tempColor,
-                                    onColorChanged: (c) {
-                                      setPickerState(() => tempColor = c);
-                                    },
-                                    enableAlpha: false,
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        setDialogState(() {
-                                          _selectedColor = tempColor;
-                                        });
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Select'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        child: CircleAvatar(
-                          backgroundColor: tempColor,
-                          radius: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text('Category color'),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final title = _newCategoryController.text.trim();
-                    if (title.isEmpty) return;
-                    if (_categories.any(
-                      (c) => c.category.toLowerCase() == title.toLowerCase(),
-                    )) {
-                      return;
-                    }
-
-                    Navigator.pop(
-                      context,
-                      TaskCategory(category: title, color: tempColor),
-                    );
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (_) => AddCategoryPopup(existingCategories: _categories,),
     );
 
     if (newCategory != null) {
       setState(() => _categories.add(newCategory));
       widget.onNewCategory(List.unmodifiable(_categories));
     }
-
-    _newCategoryController.clear();
   }
 
   //deadline
@@ -222,7 +131,6 @@ class _CreateTaskState extends State<CreateTask> {
     // Clean up the controller when the widget is disposed.
     _titleController.dispose();
     _descriptionController.dispose();
-    _newCategoryController.dispose();
     super.dispose();
   }
 
