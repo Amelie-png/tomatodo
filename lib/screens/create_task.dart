@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:tomatodo/models/task_category.dart';
 import 'package:tomatodo/widgets/task_points_slider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/story_points.dart';
@@ -8,11 +10,15 @@ class CreateTask extends StatefulWidget {
   final TaskMode mode;
   final Task? task;
   final ValueChanged<Task> onSave;
+  final List<TaskCategory> taskCategories;
+  final ValueChanged<List<TaskCategory>> onNewCategory;
   const CreateTask({
     super.key,
     required this.mode,
     this.task,
     required this.onSave,
+    required this.taskCategories,
+    required this.onNewCategory,
   });
 
   @override
@@ -25,6 +31,7 @@ enum TaskMode { create, edit }
 
 class _CreateTaskState extends State<CreateTask> {
   late Task _draftTask;
+
   //subject
   late TextEditingController _titleController;
   bool get _isValid => _titleController.text.trim().isNotEmpty;
@@ -33,6 +40,110 @@ class _CreateTaskState extends State<CreateTask> {
   late TextEditingController _descriptionController;
 
   //category
+  late List<TaskCategory> _categories;
+  final _newCategoryController = TextEditingController();
+  int? _selectedIndex;
+  Color _selectedColor = const Color.fromARGB(255, 190, 235, 220);
+  Future<void> _addCategory() async {
+    final TaskCategory? newCategory = await showDialog<TaskCategory>(
+      context: context,
+      builder: (context) {
+        Color tempColor = _selectedColor;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add New Category'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _newCategoryController,
+                    decoration: const InputDecoration(
+                      labelText: 'Category Title',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          await showDialog(
+                            context: context,
+                            builder: (_) => StatefulBuilder(
+                              builder: (context, setPickerState) {
+                                return AlertDialog(
+                                  content: ColorPicker(
+                                    pickerColor: tempColor,
+                                    onColorChanged: (c) {
+                                      setPickerState(() => tempColor = c);
+                                    },
+                                    enableAlpha: false,
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        setDialogState(() {
+                                          _selectedColor = tempColor;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('Select'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: tempColor,
+                          radius: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Category color'),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final title = _newCategoryController.text.trim();
+                    if (title.isEmpty) return;
+                    if (_categories.any(
+                      (c) => c.category.toLowerCase() == title.toLowerCase(),
+                    )) {
+                      return;
+                    }
+
+                    Navigator.pop(
+                      context,
+                      TaskCategory(category: title, color: tempColor),
+                    );
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (newCategory != null) {
+      setState(() => _categories.add(newCategory));
+      widget.onNewCategory(List.unmodifiable(_categories));
+    }
+
+    _newCategoryController.clear();
+  }
 
   //deadline
 
@@ -53,6 +164,9 @@ class _CreateTaskState extends State<CreateTask> {
     final result = _draftTask.copyWith(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
+      taskCategory: _selectedIndex == null
+          ? _categories.first
+          : _categories[_selectedIndex! + 1],
       storyPoints: StoryPoints(
         timePoints: _currentTimePoints.round(),
         complexityPoints: _currentComplexityPoints.round(),
@@ -69,12 +183,15 @@ class _CreateTaskState extends State<CreateTask> {
   void initState() {
     super.initState();
 
+    _categories = List.from(widget.taskCategories);
+
     if (widget.mode == TaskMode.edit && widget.task != null) {
       _draftTask = widget.task!.copyWith();
     } else {
       _draftTask = Task(
         id: const Uuid().v4(),
         title: '',
+        taskCategory: _categories[0],
         storyPoints: StoryPoints(),
         createdAt: DateTime.now(),
       );
@@ -86,8 +203,18 @@ class _CreateTaskState extends State<CreateTask> {
     );
     _dropdownValue = _draftTask.status;
     _currentTimePoints = _draftTask.storyPoints.timePoints.toDouble();
-    _currentComplexityPoints = _draftTask.storyPoints.complexityPoints.toDouble();
+    _currentComplexityPoints = _draftTask.storyPoints.complexityPoints
+        .toDouble();
     _currentUrgencyPoints = _draftTask.storyPoints.urgencyPoints.toDouble();
+
+    if (widget.mode == TaskMode.edit && widget.task?.taskCategory != null) {
+      final index = _categories.indexWhere(
+        (c) => c == widget.task!.taskCategory,
+      );
+      if (index > 0) {
+        _selectedIndex = index - 1; // No category is hidden
+      }
+    }
   }
 
   @override
@@ -95,12 +222,14 @@ class _CreateTaskState extends State<CreateTask> {
     // Clean up the controller when the widget is disposed.
     _titleController.dispose();
     _descriptionController.dispose();
+    _newCategoryController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.mode == TaskMode.edit;
+    final visibleCategories = _categories.skip(1).toList();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -138,6 +267,28 @@ class _CreateTaskState extends State<CreateTask> {
               });
             },
             dropdownMenuEntries: dropdownEntries,
+          ),
+          Row(
+            children: [
+              Expanded(child: const Text('Task Category (optional)')),
+              IconButton(onPressed: _addCategory, icon: Icon(Icons.add)),
+            ],
+          ),
+          Wrap(
+            spacing: 5.0,
+            children: List<Widget>.generate(visibleCategories.length, (
+              int index,
+            ) {
+              return ChoiceChip(
+                label: Text(visibleCategories[index].category),
+                selected: _selectedIndex == index,
+                onSelected: (bool selected) {
+                  setState(() {
+                    _selectedIndex = selected ? index : null;
+                  });
+                },
+              );
+            }).toList(),
           ),
           const Text('Story Points'),
           TaskPointsSlider(

@@ -13,7 +13,7 @@ class TaskListColumn extends StatefulWidget {
     required this.status,
     required this.tasks,
     required this.onTaskDropped,
-    this.onEdit
+    this.onEdit,
   });
 
   @override
@@ -54,7 +54,12 @@ class _TaskListColumnState extends State<TaskListColumn> {
                   padding: const EdgeInsets.all(8),
                   itemCount: widget.tasks.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return TaskTile(task: widget.tasks[index], onEdit: () => widget.onEdit!(widget.tasks[index]),);
+                    return TaskTile(
+                      task: widget.tasks[index],
+                      onEdit: widget.onEdit == null
+                          ? null
+                          : () => widget.onEdit!(widget.tasks[index]),
+                    );
                   },
                   separatorBuilder: (BuildContext context, int index) =>
                       const Divider(),

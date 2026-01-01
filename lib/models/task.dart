@@ -1,4 +1,5 @@
 import 'package:tomatodo/models/story_points.dart';
+import 'package:tomatodo/models/task_category.dart';
 
 enum Status { todo, inProgress, finalizing, completed }
 
@@ -19,7 +20,8 @@ extension StatusLabel on Status {
 
 class Task {
   final String id, title;
-  final String? description, taskCategory;
+  final String? description;
+  final TaskCategory taskCategory;
   final DateTime? deadline;
   final DateTime createdAt;
   final StoryPoints storyPoints;
@@ -28,7 +30,7 @@ class Task {
   const Task({
     required this.id,
     required this.title,
-    this.taskCategory,
+    required this.taskCategory,
     required this.storyPoints,
     this.deadline,
     required this.createdAt,
@@ -38,7 +40,7 @@ class Task {
 
   Task copyWith({
     String? title,
-    String? taskCategory,
+    TaskCategory? taskCategory,
     String? description,
     DateTime? deadline,
     StoryPoints? storyPoints,

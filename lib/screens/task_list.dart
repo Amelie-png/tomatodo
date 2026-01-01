@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tomatodo/models/task_category.dart';
 import 'package:tomatodo/screens/create_task.dart';
 import '../models/task.dart';
 import '../widgets/task_list_col.dart';
@@ -12,6 +13,9 @@ class TaskList extends StatefulWidget {
 
 class _TaskListState extends State<TaskList> {
   final List<Task> _tasks = [];
+  List<TaskCategory> _taskCategories = [
+    TaskCategory(category: 'No category', color: Colors.grey),
+  ];
 
   //Draggable
   void _moveTask(Task task, Status newStatus) {
@@ -33,14 +37,26 @@ class _TaskListState extends State<TaskList> {
       }
     });
   }
+
   void _editTask(Task task) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            CreateTask(mode: TaskMode.edit, task: task, onSave: _saveTask),
+        builder: (_) => CreateTask(
+          mode: TaskMode.edit,
+          task: task,
+          onSave: _saveTask,
+          taskCategories: _taskCategories,
+          onNewCategory: _onNewCategory,
+        ),
       ),
     );
+  }
+
+  void _onNewCategory(List<TaskCategory> newCategories) {
+    setState(() {
+      _taskCategories = newCategories;
+    });
   }
 
   @override
@@ -71,8 +87,12 @@ class _TaskListState extends State<TaskList> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  CreateTask(mode: TaskMode.create, onSave: _saveTask),
+              builder: (_) => CreateTask(
+                mode: TaskMode.create,
+                onSave: _saveTask,
+                taskCategories: _taskCategories,
+                onNewCategory: _onNewCategory,
+              ),
             ),
           );
         },

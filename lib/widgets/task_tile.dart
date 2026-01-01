@@ -21,7 +21,7 @@ class TaskTile extends StatelessWidget {
     return Container(
       height: 50,
       width: 200,
-      color: const Color.fromARGB(255, 190, 235, 220),
+      color: task.taskCategory.color,
       child: ListTile(
         title: Text(task.title), // Main content
         trailing: IconButton(
