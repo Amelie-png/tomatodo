@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   uuid: ^4.4.2
   flutter_colorpicker: ^1.0.3
+  just_audio:
+  audio_video_progress_bar:
 
 dev_dependencies:
   flutter_test:
