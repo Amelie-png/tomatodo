@@ -23,7 +23,8 @@ class TaskTile extends StatelessWidget {
       width: 200,
       color: task.taskCategory.color,
       child: ListTile(
-        title: Text(task.title), // Main content
+        title: Text(task.title),
+        subtitle: Text(task.taskCategory.toString()), // Main content
         trailing: IconButton(
           icon: const Icon(Icons.more_vert),
           onPressed: onEdit,
